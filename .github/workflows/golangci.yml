@@ -3,7 +3,7 @@ on:
     paths:
       - "**.go"
       - .github/workflows/golangci.yml
-name: test
+name: golang-ci
 jobs:
   golangci-lint:
     name: golangci-lint

@@ -14,7 +14,7 @@ linters:
     - errcheck
     - gocognit
     - gocritic
-    - gocycle
+    - gocyclo
     - gofmt
     - govet
     - misspell

@@ -1,6 +1,6 @@
 on:
   push:
-    branched:
+    branches:
       - "main"
   pull_request:
 name: test

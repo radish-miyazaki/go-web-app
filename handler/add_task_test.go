@@ -40,8 +40,6 @@ func TestAddTask(t *testing.T) {
 
 	for n, tt := range tests {
 		t.Run(n, func(t *testing.T) {
-			t.Parallel()
-
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/tasks", bytes.NewReader(testutil.LoadFile(t, tt.reqFile)))
 			sut := AddTask{

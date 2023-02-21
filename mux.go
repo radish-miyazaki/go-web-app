@@ -12,7 +12,7 @@ import (
 func NewMux() http.Handler {
 	mux := chi.NewRouter()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte(`{"status": "ok"}`))
+		_, _ = w.Write([]byte(`{"status": "OK"}`))
 	})
 	v := validator.New()
 	at := &handler.AddTask{Store: store.Tasks, Validator: v}

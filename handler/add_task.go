@@ -36,9 +36,10 @@ func (at *AddTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t := &entity.Task{
-		Title:   b.Title,
-		Status:  entity.TaskStatusTodo,
-		Created: time.Now(),
+		Title:     b.Title,
+		Status:    entity.TaskStatusTodo,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 	id, err := store.Tasks.Add(t)
 	if err != nil {

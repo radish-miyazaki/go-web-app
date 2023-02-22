@@ -8,7 +8,27 @@ services:
     environment:
       APP_ENV: dev
       PORT: 8080
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: todo
+      DB_PASSWORD: password
+      DB_DATABASE: todo
     volumes:
       - .:/app
     ports:
       - "8080:8080"
+  db:
+    image: mysql:8.0
+    platform: linux/amd64
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_USER: todo
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: todo
+    volumes:
+      - db-data:/var/lib/mysql
+      - $PWD/_tools/mysql/conf.d:/etc/mysql/conf.d:cached
+    ports:
+      - "33060:3306"
+volumes:
+  db-data:

@@ -12,7 +12,7 @@ services:
       DB_PORT: 3306
       DB_USER: todo
       DB_PASSWORD: password
-      DB_DATABASE: todo
+      DB_NAME: todo
     volumes:
       - .:/app
     ports:

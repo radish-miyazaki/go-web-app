@@ -24,5 +24,11 @@ ps: ## Check container status
 test: ## Execute tests
 	go test -race -shuffle=on ./...
 
+migrate: ## Read schema SQL from the file and execute migrate
+	mysqldef -u todo -p password -h 127.0.0.1 -P 33060 todo < ./_tools/mysql/schema.sql
+
+dry-migrate: ## Execute migrate with dry-run option
+	mysqldef -u todo -p password -h 127.0.0.1 -P 33060 todo --dry-run < ./_tools/mysql/schema.sql
+
 help: ## Show options
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

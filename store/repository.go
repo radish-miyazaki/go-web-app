@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -34,12 +35,18 @@ type Queryer interface {
 	SelectContext(ctx context.Context, dest any, query string, args ...any) error
 }
 
+const (
+	ErrCodeMySQLDuplicateEntry = 1062
+)
+
 var (
 	_ Beginner = (*sqlx.DB)(nil)
 	_ Preparer = (*sqlx.DB)(nil)
 	_ Queryer  = (*sqlx.DB)(nil)
 	_ Execer   = (*sqlx.DB)(nil)
 	_ Execer   = (*sqlx.Tx)(nil)
+
+	ErrAlreadyEntity = errors.New("duplicate entry")
 )
 
 type Repository struct {

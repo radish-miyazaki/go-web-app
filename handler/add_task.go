@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/radish-miyazaki/go-web-app/entity"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -41,7 +43,7 @@ func (at *AddTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := struct {
-		ID int `json:"id"`
-	}{ID: int(t.ID)}
+		ID entity.TaskID `json:"id"`
+	}{ID: t.ID}
 	RespondJSON(ctx, w, resp, http.StatusOK)
 }

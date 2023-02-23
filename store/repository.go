@@ -59,7 +59,7 @@ func New(ctx context.Context, cfg *config.Config) (*sqlx.DB, func(), error) {
 		),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, func() {}, err
 	}
 
 	// INFO: sql.Openは接続テストが行われないので、ここで疎通確認を行う

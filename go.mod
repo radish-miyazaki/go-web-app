@@ -2,14 +2,9 @@ module github.com/radish-miyazaki/go-web-app
 
 go 1.19
 
-// errgroup: ゴルーチンで処理を行った際にエラーを返せるようにするためのパッケージ
-require golang.org/x/sync v0.1.0
-
-// 環境変数を取り扱うためのパッケージ
-require github.com/caarlos0/env/v7 v7.0.0
-
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/caarlos0/env/v7 v7.0.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-sql-driver/mysql v1.7.0
@@ -20,6 +15,7 @@ require (
 	github.com/matryer/moq v0.3.0
 	github.com/redis/go-redis/v9 v9.0.2
 	golang.org/x/crypto v0.6.0
+	golang.org/x/sync v0.1.0
 )
 
 require (

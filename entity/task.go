@@ -16,8 +16,9 @@ type Task struct {
 	ID        TaskID     `json:"id" db:"id"`
 	Title     string     `json:"title" db:"title"`
 	Status    TaskStatus `json:"status" db:"status"`
-	CreatedAt time.Time  `json:"createdAt" db:"created_at"`
-	UpdatedAt time.Time  `json:"updatedAt" db:"updated_at"`
+	UserID    UserID     `json:"user_id" db:"user_id"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
 }
 
 type Tasks []*Task

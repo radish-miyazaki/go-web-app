@@ -19,6 +19,7 @@ func (r *Repository) RegisterUser(ctx context.Context, db Execer, u *entity.User
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
 			return fmt.Errorf("cannot create same name user: %w", ErrAlreadyEntity)
 		}
+
 		return err
 	}
 
@@ -26,6 +27,17 @@ func (r *Repository) RegisterUser(ctx context.Context, db Execer, u *entity.User
 	if err != nil {
 		return err
 	}
+
 	u.ID = entity.UserID(id)
 	return nil
+}
+
+func (r *Repository) GetUser(ctx context.Context, db Queryer, name string) (*entity.User, error) {
+	u := &entity.User{}
+	sql := "SELECT id, name, password, role, created_at, updated_at FROM user WHERE name = ?"
+	if err := db.GetContext(ctx, u, sql, name); err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }

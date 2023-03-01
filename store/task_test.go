@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/radish-miyazaki/go-web-app/testutil/fixture"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/jmoiron/sqlx"
@@ -22,10 +24,10 @@ func TestRepository_ListTasks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wants := prepareTasks(ctx, t, tx)
+	wantUserID, wants := prepareTasks(ctx, t, tx)
 
 	sut := &Repository{}
-	gots, err := sut.ListTasks(ctx, tx)
+	gots, err := sut.ListTasks(ctx, tx, wantUserID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -41,6 +43,7 @@ func TestRepository_AddTask(t *testing.T) {
 	c := clock.FixedClocker{}
 	var wantID int64 = 20
 	okTask := &entity.Task{
+		UserID:    entity.UserID(1),
 		Title:     "ok task",
 		Status:    "todo",
 		CreatedAt: c.Now(),
@@ -54,8 +57,8 @@ func TestRepository_AddTask(t *testing.T) {
 	t.Cleanup(func() {
 		db.Close()
 	})
-	mock.ExpectExec(`INSERT INTO task \(title, status, created_at, updated_at\) VALUES \(\?, \?, \?, \?\)`).
-		WithArgs(okTask.Title, okTask.Status, okTask.CreatedAt, okTask.UpdatedAt).
+	mock.ExpectExec(`INSERT INTO task \(user_id, title, status, created_at, updated_at\) VALUES \(\?, \?, \?, \?, \?\)`).
+		WithArgs(okTask.UserID, okTask.Title, okTask.Status, okTask.CreatedAt, okTask.UpdatedAt).
 		WillReturnResult(sqlmock.NewResult(wantID, 1))
 
 	xdb := sqlx.NewDb(db, "mysql")
@@ -65,10 +68,34 @@ func TestRepository_AddTask(t *testing.T) {
 	}
 }
 
-func prepareTasks(ctx context.Context, t *testing.T, con Execer) entity.Tasks {
+func prepareUser(ctx context.Context, t *testing.T, db Execer) entity.UserID {
 	t.Helper()
 
-	if _, err := con.ExecContext(ctx, "DELETE FROM task;"); err != nil {
+	u := fixture.User(nil)
+	result, err := db.ExecContext(ctx,
+		"INSERT INTO user (name, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+		u.Name,
+		u.Password,
+		u.Role,
+		u.CreatedAt,
+		u.UpdatedAt,
+	)
+	if err != nil {
+		t.Fatalf("insert user %v", err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		t.Fatalf("got user_id: %v", err)
+	}
+	return entity.UserID(id)
+}
+
+func prepareTasks(ctx context.Context, t *testing.T, db Execer) (entity.UserID, entity.Tasks) {
+	t.Helper()
+	userID := prepareUser(ctx, t, db)
+	otherUserID := prepareUser(ctx, t, db)
+
+	if _, err := db.ExecContext(ctx, "DELETE FROM task;"); err != nil {
 		t.Logf("failed to initialize task: %v", err)
 	}
 	c := clock.FixedClocker{}
@@ -78,26 +105,34 @@ func prepareTasks(ctx context.Context, t *testing.T, con Execer) entity.Tasks {
 			Status:    "todo",
 			CreatedAt: c.Now(),
 			UpdatedAt: c.Now(),
+			UserID:    userID,
 		},
 		{
 			Title:     "want task 2",
-			Status:    "todo",
-			CreatedAt: c.Now(),
-			UpdatedAt: c.Now(),
-		},
-		{
-			Title:     "want task 3",
 			Status:    "done",
 			CreatedAt: c.Now(),
 			UpdatedAt: c.Now(),
+			UserID:    userID,
 		},
 	}
-	result, err := con.ExecContext(
+	tasks := entity.Tasks{
+		wants[0],
+		{
+			Title:     "not want",
+			Status:    "todo",
+			CreatedAt: c.Now(),
+			UpdatedAt: c.Now(),
+			UserID:    otherUserID,
+		},
+		wants[1],
+	}
+
+	result, err := db.ExecContext(
 		ctx,
-		"INSERT INTO task (title, status, created_at, updated_at) VALUES (?, ?, ?, ?), (?, ?, ?, ?), (?, ?, ?, ?)",
-		wants[0].Title, wants[0].Status, wants[0].CreatedAt, wants[0].UpdatedAt,
-		wants[1].Title, wants[1].Status, wants[1].CreatedAt, wants[1].UpdatedAt,
-		wants[2].Title, wants[2].Status, wants[2].CreatedAt, wants[2].UpdatedAt,
+		"INSERT INTO task (user_id, title, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?), (?, ?, ?, ?, ?), (?, ?, ?, ?, ?);",
+		tasks[0].UserID, tasks[0].Title, tasks[0].Status, tasks[0].CreatedAt, tasks[0].UpdatedAt,
+		tasks[1].UserID, tasks[1].Title, tasks[1].Status, tasks[1].CreatedAt, tasks[1].UpdatedAt,
+		tasks[2].UserID, tasks[2].Title, tasks[2].Status, tasks[2].CreatedAt, tasks[2].UpdatedAt,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -106,8 +141,8 @@ func prepareTasks(ctx context.Context, t *testing.T, con Execer) entity.Tasks {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wants[0].ID = entity.TaskID(id)
-	wants[1].ID = entity.TaskID(id + 1)
-	wants[2].ID = entity.TaskID(id + 2)
-	return wants
+	tasks[0].ID = entity.TaskID(id)
+	tasks[1].ID = entity.TaskID(id + 1)
+	tasks[2].ID = entity.TaskID(id + 2)
+	return userID, wants
 }
